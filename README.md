@@ -1,6 +1,6 @@
-# Bell MyBell iOS — Appium Performance Automation Framework
+# Appium Performance Automation Framework
 
-This framework drives the **Bell MyBell Mobile (iOS)** app through Appium to measure
+This framework drives the app through Appium to measure
 how long each screen/transaction takes to load, for six user journeys:
 
 | Journey       | What it measures                                   | Data file              | Report              |
