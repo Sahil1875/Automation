@@ -107,9 +107,6 @@ bell_mbm_ios_framework/
                                      original "master script", each in its own process
 ```
 
-**Rule of thumb for freshers:** if you're changing *what a locator looks like* → edit a
-file in `pages/`. If you're changing *the order of steps or which screens are visited*
-→ edit a file in `flows/`. You should almost never need to touch `core/` or `utils/`.
 
 ---
 
@@ -162,56 +159,5 @@ Each one:
 python run_all.py
 ```
 
-Edit the `JOURNEYS` list at the top of `run_all.py` to choose which ones to include
-and in what order (mirrors the old `mbm_ios_01masterscript.py`). Each journey still
-runs in its **own subprocess** with its own Appium session, so one journey crashing
-doesn't take down the others — you get a pass/fail summary at the end.
 
----
 
-## 5. Adding a new journey (e.g. "Add-a-Line")
-
-1. Add `data/Data_AddALine.csv` with `username,password` columns.
-2. Create `pages/add_a_line_page.py`, subclassing `BasePage`, with one method per screen
-   transition (look at `pages/crp_page.py` for the pattern).
-3. Create `flows/add_a_line_flow.py`, copying the shape of `flows/crp_flow.py`: loop
-   over CSV rows, call page-object methods wrapped in `step_timer`, write the report.
-4. Create `run_add_a_line.py` (copy `run_crp.py` and change the import).
-5. Optionally add it to the `JOURNEYS` list in `run_all.py`.
-
-You never need to touch `core/` or existing page objects to add a new journey.
-
----
-
-## 6. Bug fixed during the refactor
-
-The original scripts computed the "Average" summary with:
-
-```python
-df.loc["Average"] = df.mean(axis=1)
-```
-
-`df.mean(axis=1)` correctly computes one average **per step** (row), but assigning it
-via `df.loc["Average"] = ...` adds it as a new **row**, and pandas can't align a
-Series indexed by step names against columns named "Iteration 1", "Iteration 2", etc.
-The result was an "Average" row filled entirely with `NaN` in every original `.xlsx`
-report (you can verify this in the `output_*.xlsx` files that shipped with the
-original scripts). `utils/report_writer.py` fixes this by adding the result as a new
-**column** instead (`df["Average"] = df.mean(axis=1)`), which is what the per-step
-average actually needs.
-
----
-
-## 7. Notes carried over from the original scripts
-
-- Some locators in the original HUG script were marked `# TODO: add locator` — these
-  were kept as-is (with the same `# TODO` comments) in `pages/hug_page.py` since we
-  don't have access to the live app to verify better locators. Search for `TODO` in
-  that file.
-- Hardcoded `time.sleep()` calls were kept where the original relied on them (mostly
-  for animations/screen settle time) since replacing them all with explicit waits
-  would require access to the live app to verify. New explicit waits should be
-  preferred going forward — see `BasePage.wait_visible()`.
-- Session/device capabilities (username, password, UDID, bundle id) now come from
-  `config/settings.py`, sourced from environment variables — nothing is hardcoded in
-  test logic anymore.
