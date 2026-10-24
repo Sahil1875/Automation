@@ -1,0 +1,24 @@
+stages:
+  - build
+  - test
+
+create_file:
+  stage: build
+  tags:
+    - shared-runner-docker
+  image: alpine 
+  script:
+    - echo "Building"
+    - mkdir build
+    - touch build/somefile.txt
+  artifacts:
+    paths:
+      - build/
+
+test_file:
+  stage: test
+  image: alpine
+  tags:
+    - shared-runner-docker
+  script:
+   - test -f build/somefile.txt
